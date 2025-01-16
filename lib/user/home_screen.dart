@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:lab_report/result_screen.dart';
+import 'package:lab_report/user/result_screen.dart';
 import 'package:lottie/lottie.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,17 +20,28 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> uploadFile() async {
     // Pick the file
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'png'],
+      type: FileType.any,
+    // allowedExtensions: ['jpg', 'png'],
     );
 
+    
+
+    
+
+
     if (result != null) {
+
       final file = result.files.single;
-      final filePath = file.path;
+    print('eeeeeeeeeeeee');
+
+print(file);
+
+      final fileBytes = file.bytes;
+
 
       // Check if the selected file is valid
-      if (filePath != null &&
-          (filePath.endsWith('.jpg') || filePath.endsWith('.png'))) {
+   //   if (fileBytes == null ){
+      //     ( && filePath.endsWith('.jpg') || filePath.endsWith('.png'))) {
         try {
           setState(() {
             _isLoading = true; // Start loading
@@ -39,10 +50,16 @@ class _HomeScreenState extends State<HomeScreen> {
           // Send the file to the Flask API
           var request = http.MultipartRequest(
             'POST',
-            Uri.parse('https://8902-117-243-201-117.ngrok-free.app/upload'),
+            Uri.parse('https://772b-117-243-210-133.ngrok-free.app/upload'),
           );
 
-          request.files.add(await http.MultipartFile.fromPath('file', filePath));
+        final filepath =  await  http.MultipartFile.fromPath(
+            'file', file.path!,);
+           // For Web: Create a MultipartFile using the bytes data
+          request.files.add(filepath);
+
+
+          // request.files.add(await http.MultipartFile.fromPath('file', filePath));
 
           var response = await request.send();
 
@@ -51,6 +68,11 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _isLoading = false; // Stop loading
           });
+
+          print('===============================================================================================');
+          print(response.statusCode);
+
+
 
           if (response.statusCode == 200) {
             final responseData = await response.stream.bytesToString();
@@ -69,16 +91,14 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _isLoading = false; // Stop loading on error
           });
+          print(e);
           _showErrorDialog("Exception during file upload: $e");
         }
       } else {
         // Show warning if file is not valid
         _showErrorDialog("Only JPG or PNG files are allowed.");
       }
-    } else {
-      // User canceled the picker
-      print('No file selected');
-    }
+   
   }
 
   void _showErrorDialog(String message) {
@@ -117,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 60),
                 // Header Text
                 Text(
-                 ' Your Health Matters',
+                  'Your Health Matters',
                    style: GoogleFonts.montserrat(
                         
                         fontSize: 28,
