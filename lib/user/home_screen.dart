@@ -1,9 +1,9 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:lab_report/user/result_screen.dart';
 import 'package:lottie/lottie.dart';
 
@@ -16,89 +16,75 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false; // Track loading state
+  final ImagePicker _picker = ImagePicker();
 
   Future<void> uploadFile() async {
-    // Pick the file
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    // allowedExtensions: ['jpg', 'png'],
+    // Pick the image
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery, // You can also use ImageSource.camera
     );
 
-    
+    if (pickedFile != null) {
+      try {
+        setState(() {
+          _isLoading = true; // Start loading
+        });
 
-    
+        // Read the file as bytes
+        final fileBytes = await File(pickedFile.path).readAsBytes();
 
+        print('iiiiiiiiiiiii');
+        print(fileBytes);
 
-    if (result != null) {
+        // Prepare the multipart request
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('https://772b-117-243-210-133.ngrok-free.app/upload'),
+        );
 
-      final file = result.files.single;
-    print('eeeeeeeeeeeee');
+        // Add file as bytes
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file', // Field name expected by the API
+            fileBytes,
+            filename: pickedFile.name, // Optional: Specify a filename
+  // Change content type if needed
+          ),
+        );
 
-print(file);
+        // Send the request
+        var response = await request.send();
 
-      final fileBytes = file.bytes;
+        setState(() {
+          _isLoading = false; // Stop loading
+        });
 
-
-      // Check if the selected file is valid
-   //   if (fileBytes == null ){
-      //     ( && filePath.endsWith('.jpg') || filePath.endsWith('.png'))) {
-        try {
-          setState(() {
-            _isLoading = true; // Start loading
-          });
-
-          // Send the file to the Flask API
-          var request = http.MultipartRequest(
-            'POST',
-            Uri.parse('https://772b-117-243-210-133.ngrok-free.app/upload'),
-          );
-
-        final filepath =  await  http.MultipartFile.fromPath(
-            'file', file.path!,);
-           // For Web: Create a MultipartFile using the bytes data
-          request.files.add(filepath);
-
-
-          // request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-          var response = await request.send();
-
-          
-
-          setState(() {
-            _isLoading = false; // Stop loading
-          });
-
-          print('===============================================================================================');
-          print(response.statusCode);
-
-
-
-          if (response.statusCode == 200) {
-            final responseData = await response.stream.bytesToString();
+        if (response.statusCode == 200) {
+          final responseData = await response.stream.bytesToString();
           final parsedData = json.decode(responseData);
 
           print(parsedData);
 
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ResultScreen(resultData: parsedData,),));
-            // Show success message
-            
-          } else {
-            // Show error message
-            _showErrorDialog("Failed to upload file. Please try again.");
-          }
-        } catch (e) {
-          setState(() {
-            _isLoading = false; // Stop loading on error
-          });
-          print(e);
-          _showErrorDialog("Exception during file upload: $e");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultScreen(resultData: parsedData),
+            ),
+          );
+        } else {
+          _showErrorDialog("Failed to upload file. Please try again.");
         }
-      } else {
-        // Show warning if file is not valid
-        _showErrorDialog("Only JPG or PNG files are allowed.");
+      } catch (e) {
+        setState(() {
+          _isLoading = false; // Stop loading on error
+        });
+        print(e);
+        _showErrorDialog("Exception during file upload: $e");
       }
-   
+    } else {
+      // Show warning if no file is selected
+      _showErrorDialog("No file selected. Please choose a valid image.");
+    }
   }
 
   void _showErrorDialog(String message) {
@@ -138,20 +124,16 @@ print(file);
                 // Header Text
                 Text(
                   'Your Health Matters',
-                   style: GoogleFonts.montserrat(
-                        
-                        fontSize: 28,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.teal.shade800,// Red color for the button text
-                      ),
-                  
-                  
-                  
+                    color: Colors.teal.shade800,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 // Lottie Animation
-                 Expanded(
+                Expanded(
                   child: Lottie.asset('asset/homeani.json'), // Replace with your animation
                 ),
                 const SizedBox(height: 24),
@@ -162,15 +144,15 @@ print(file);
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Note*: only png or jpg file upload',
-                       style: GoogleFonts.montserrat(
-                            
-                            fontSize: 13,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Colors.red,// Red color for the button text
-                          ),),
+                        color: Colors.red,
+                      ),
+                    ),
                   ),
                 ),
-                      SizedBox(height: 10,),
+                const SizedBox(height: 10),
                 // Upload Report Button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,69 +18,96 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false; // Track loading state
 
+
   Future<void> uploadFile() async {
-    // Pick the file
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'png'],
-    );
 
-    if (result != null) {
-      final file = result.files.single;
-      final filePath = file.path;
+    print('hi');
 
-      // Check if the selected file is valid
-      if (filePath != null &&
-          (filePath.endsWith('.jpg') || filePath.endsWith('.png'))) {
-        try {
-          setState(() {
-            _isLoading = true; // Start loading
-          });
+    print('-------77777777777777777777777777777--------');
+  // Pick the file
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['jpg', 'png'],
+    withData: true,
+    
+  );
 
-          // Send the file to the Flask API
-          var request = http.MultipartRequest(
-            'POST',
-            Uri.parse('https://8902-117-243-201-117.ngrok-free.app/upload'),
-          );
+  print('-------77777777777777777777777777777--------');
 
-          request.files.add(await http.MultipartFile.fromPath('file', filePath));
+  if (result != null) {
+    final file = result.files.single;
 
-          var response = await request.send();
+    // Get file bytes and file name
+    final fileBytes =  await File(file.path!).readAsBytes();
 
-          
 
-          setState(() {
-            _isLoading = false; // Stop loading
-          });
+    print(fileBytes);
+    final fileName = file.name;
 
-          if (response.statusCode == 200) {
-            final responseData = await response.stream.bytesToString();
+    // Check if the selected file is valid
+    if (fileBytes != null &&
+        (fileName.endsWith('.jpg') || fileName.endsWith('.png'))) {
+      try {
+        setState(() {
+          _isLoading = true; // Start loading
+        });
+
+        // Send the file to the Flask API
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('https://698b-117-205-204-232.ngrok-free.app/upload'),
+        );
+
+        // Add file as bytes
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            fileBytes,
+            filename: fileName,
+          ),
+        );
+
+        var response = await request.send();
+
+        setState(() {
+          _isLoading = false; // Stop loading
+        });
+
+        if (response.statusCode == 200) {
+          final responseData = await response.stream.bytesToString();
           final parsedData = json.decode(responseData);
 
           print(parsedData);
 
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ResultScreen(resultData: parsedData,),));
-            // Show success message
-            
-          } else {
-            // Show error message
-            _showErrorDialog("Failed to upload file. Please try again.");
-          }
-        } catch (e) {
-          setState(() {
-            _isLoading = false; // Stop loading on error
-          });
-          _showErrorDialog("Exception during file upload: $e");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultScreen(
+                resultData: parsedData,
+              ),
+            ),
+          );
+        } else {
+          // Show error message
+          _showErrorDialog("Failed to upload file. Please try again.");
         }
-      } else {
-        // Show warning if file is not valid
-        _showErrorDialog("Only JPG or PNG files are allowed.");
+      } catch (e) {
+        setState(() {
+          _isLoading = false; // Stop loading on error
+        });
+        _showErrorDialog("Exception during file upload: $e");
       }
     } else {
-      // User canceled the picker
-      print('No file selected');
+      // Show warning if file is not valid
+      _showErrorDialog("Only JPG or PNG files are allowed.");
     }
+  } else {
+    // User canceled the picker
+    print('No file selected');
   }
+}
+
+
 
   void _showErrorDialog(String message) {
     showDialog(

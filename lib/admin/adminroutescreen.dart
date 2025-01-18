@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lab_report/admin/admin_booking_list_screen.dart';
+import 'package:lab_report/admin/admin_logout_screen.dart';
 import 'package:lab_report/admin/drmngmnt.dart';
 
 class AdminRouteScreen extends StatefulWidget {
@@ -14,7 +16,7 @@ class _AdminRouteScreenState extends State<AdminRouteScreen> {
   final List<Widget> _screens = [
    DoctorManagementScreen  (),
     AdminBookingListScreen(),
-    Scaffold(),
+    AdminLogoutScreen(),
   ];
 
   // Function to handle tab change

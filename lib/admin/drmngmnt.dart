@@ -73,30 +73,24 @@ class DoctorList extends StatelessWidget {
               color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Row(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.teal[900],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          mobile,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.teal[600],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        InkWell(
+                        Row(
+                          children: [
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.teal[900],
+                              ),
+                            ),
+                            Spacer(),
+                            InkWell(
                           onTap: () {
                             _showFullScreenDocument(
                                 context, name, mobile, certificateUrl);
@@ -107,7 +101,7 @@ class DoctorList extends StatelessWidget {
                                   color: Colors.teal[600]),
                               SizedBox(width: 8),
                               Text(
-                                'View Document',
+                                'View',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
@@ -117,23 +111,74 @@ class DoctorList extends StatelessWidget {
                             ],
                           ),
                         ),
-                      ],
-                    ),
+
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          mobile,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.teal[600],
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        
                     Row(
                       children: [
                         if (!doctor['isapproved']) // Show Accept button only if not approved
-                          ElevatedButton(
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                FirebaseFirestore.instance
+                                    .collection('doctors')
+                                    .doc(doctor.id)
+                                    .update({'isapproved': true});
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Accepted $name')),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal[600],
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(
+                                'Accept',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
                             onPressed: () {
-                              FirebaseFirestore.instance
-                                  .collection('doctors')
-                                  .doc(doctor.id)
-                                  .update({'isapproved': true});
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Accepted $name')),
-                              );
+                              if (doctor['isapproved']) {
+                                // If already approved, delete the record
+                                FirebaseFirestore.instance
+                                    .collection('doctors')
+                                    .doc(doctor.id)
+                                    .delete();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Deleted $name')),
+                                );
+                              } else {
+                                // Otherwise, reject the record
+                                FirebaseFirestore.instance
+                                    .collection('doctors')
+                                    .doc(doctor.id)
+                                    .delete();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Rejected $name')),
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.teal[600],
+                              backgroundColor:
+                                  doctor['isapproved'] ? Colors.red : Colors.teal[300],
                               padding: EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 10),
                               shape: RoundedRectangleBorder(
@@ -141,49 +186,18 @@ class DoctorList extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              'Accept',
+                              doctor['isapproved'] ? 'Delete' : 'Reject',
                               style: TextStyle(color: Colors.white),
                             ),
-                          ),
-                        SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (doctor['isapproved']) {
-                              // If already approved, delete the record
-                              FirebaseFirestore.instance
-                                  .collection('doctors')
-                                  .doc(doctor.id)
-                                  .delete();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Deleted $name')),
-                              );
-                            } else {
-                              // Otherwise, reject the record
-                              FirebaseFirestore.instance
-                                  .collection('doctors')
-                                  .doc(doctor.id)
-                                  .delete();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Rejected $name')),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                doctor['isapproved'] ? Colors.red : Colors.teal[300],
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            doctor['isapproved'] ? 'Delete' : 'Reject',
-                            style: TextStyle(color: Colors.white),
                           ),
                         ),
                       ],
                     ),
+                  
+                      ],
+                    ),
+                  
+                  
                   ],
                 ),
               ),

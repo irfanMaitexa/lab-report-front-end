@@ -9,7 +9,7 @@ class DoctorHomeScreen extends StatelessWidget {
 
   Future<Map<String, dynamic>> fetchProfileData() async {
     final DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection('profiles')
+        .collection('doctors')
         .doc(FirebaseAuth.instance.currentUser?.uid)
         .get();
 
@@ -23,10 +23,7 @@ class DoctorHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Profile"),
-        backgroundColor: Colors.teal,
-      ),
+      
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchProfileData(),
         builder: (context, snapshot) {
