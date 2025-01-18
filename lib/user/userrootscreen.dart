@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lab_report/user/bookinglist.dart';
 import 'package:lab_report/user/home_screen.dart';
+import 'package:lab_report/user/userprofilescreen.dart';
 
 class UserNavigationScreen extends StatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _UserNavigationScreenState extends State<UserNavigationScreen> {
   final List<Widget> _pages = [
    HomeScreen(),
    BookingListScreen(),
-   Scaffold()
+   Userprofilescreen()
 
   ];
 

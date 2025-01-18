@@ -13,7 +13,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   int _selectedIndex = 0;
 
   static List<Widget> _pages = <Widget>[
-    DoctorBookingListScreen(),
+    BookingListScreen(),
     DoctorHomeScreen(),
     
   ];

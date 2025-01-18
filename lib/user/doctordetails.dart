@@ -15,7 +15,7 @@ class DoctorsListScreen extends StatelessWidget {
         backgroundColor: Colors.teal,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: doctorsCollection.snapshots(),
+        stream: doctorsCollection.where('isapproved' , isEqualTo: true).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());

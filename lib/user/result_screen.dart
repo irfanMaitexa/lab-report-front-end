@@ -98,6 +98,8 @@ class _ResultScreenState extends State<ResultScreen> {
           } else if (snapshot.hasData) {
             final data = snapshot.data!;
             final bool anemiaDetected = data['anemia_detected'];
+
+            print(anemiaDetected);
             final additionalInfo = data['additional_info'];
 
             return Padding(
@@ -109,7 +111,8 @@ class _ResultScreenState extends State<ResultScreen> {
                       child: Column(
                         children: [
                           _buildSectionHeading('No Anemia Detected'),
-                          _buildSectionContainer(
+                          if(anemiaDetected)
+                           _buildSectionContainer(
                             content: [
                               Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
@@ -136,6 +139,9 @@ class _ResultScreenState extends State<ResultScreen> {
                             ],
                             backgroundColor: Colors.white,
                           ),
+                        
+                       
+                        
                           Spacer(),
                           Center(
                             child: AnimatedScale(

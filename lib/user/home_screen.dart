@@ -42,15 +42,16 @@ class _HomeScreenState extends State<HomeScreen> {
         // Prepare the multipart request
         var request = http.MultipartRequest(
           'POST',
-          Uri.parse('https://772b-117-243-210-133.ngrok-free.app/upload'),
+          Uri.parse('https://f180-117-232-171-188.ngrok-free.app/upload'),
         );
 
         // Add file as bytes
-        request.files.add(
-          http.MultipartFile.fromBytes(
+        request.files.add(await
+          http.MultipartFile.fromPath(
             'file', // Field name expected by the API
-            fileBytes,
-            filename: pickedFile.name, // Optional: Specify a filename
+            pickedFile.path,
+            filename: pickedFile.name,
+            // Optional: Specify a filename
   // Change content type if needed
           ),
         );
