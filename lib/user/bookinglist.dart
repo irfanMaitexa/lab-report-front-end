@@ -7,9 +7,15 @@ class BookingListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
+      appBar: AppBar(
+        title: Text("Bookings"),
+        backgroundColor: Colors.teal,
+      ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('bookings').where('userId' ,isEqualTo: FirebaseAuth.instance.currentUser?.uid).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('bookings')
+            .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -32,7 +38,7 @@ class BookingListScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final booking = bookings[index];
               return BookingCard(
-                isAccepted: booking['isAccepted'] ?? 'No name',
+                isAccepted: booking['isAccepted'] ?? false,
                 name: booking['name'] ?? 'No Name',
                 age: booking['age'] ?? 0,
                 gender: booking['gender'] ?? 'Not Specified',
@@ -40,6 +46,7 @@ class BookingListScreen extends StatelessWidget {
                 timestamp: booking['timestamp'] != null
                     ? (booking['timestamp'] as Timestamp).toDate()
                     : null,
+                doctorId: booking['doctorId'],
               );
             },
           );
@@ -48,7 +55,6 @@ class BookingListScreen extends StatelessWidget {
     );
   }
 }
-// For formatting timestamps
 
 class BookingCard extends StatelessWidget {
   final String name;
@@ -57,6 +63,7 @@ class BookingCard extends StatelessWidget {
   final String mobileNumber;
   final DateTime? timestamp;
   final bool isAccepted;
+  final String doctorId;
 
   BookingCard({
     required this.name,
@@ -65,7 +72,73 @@ class BookingCard extends StatelessWidget {
     required this.mobileNumber,
     this.timestamp,
     required this.isAccepted,
+    required this.doctorId,
   });
+
+  void showDoctorDetails(BuildContext context, String doctorId) async {
+    // Fetch the doctor's details from Firestore
+    final doctorSnapshot = await FirebaseFirestore.instance
+        .collection('doctors')
+        .doc(doctorId)
+        .get();
+
+    if (doctorSnapshot.exists) {
+      final doctorData = doctorSnapshot.data()!;
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              doctorData['name'] ?? 'Doctor Details',
+              style: TextStyle(color: Colors.teal),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (doctorData['certificateUrl'] != null)
+                  Image.network(
+                    doctorData['certificateUrl'],
+                    height: 150,
+                    width: 150,
+                    fit: BoxFit.cover,
+                  ),
+                SizedBox(height: 16),
+                Text(
+                  'Email: ${doctorData['email'] ?? 'N/A'}',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Mobile: ${doctorData['mobile'] ?? 'N/A'}',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Created At: ${doctorData['createdAt'] != null ? DateFormat('yMMMd').format((doctorData['createdAt'] as Timestamp).toDate()) : 'N/A'}',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Show error if doctor data not found
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Doctor details not found.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,10 +158,23 @@ class BookingCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  GestureDetector(
+                    onTap: () => showDoctorDetails(context, doctorId),
+                    child: Text(
+                      'Doctor: Tap for details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal[900],
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8),
                   Text(
-                    name,
+                    'Patient: $name',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.teal[900],
                     ),
