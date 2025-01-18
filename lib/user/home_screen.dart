@@ -36,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
         print('iiiiiiiiiiiii');
         print(fileBytes);
 
+
+        
+
         // Prepare the multipart request
         var request = http.MultipartRequest(
           'POST',
